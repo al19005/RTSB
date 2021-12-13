@@ -4,13 +4,14 @@ import cv2
 import numpy as np
 from PIL import Image, ImageTk, ImageFont, ImageDraw
 # $dir C:\Windows\Fonts
-
+# 使うフォントのpath設定してください
 FONT_PATH = "C:/Windows/Fonts/NotoSansJP-Regular.otf"
 FONT_SIZE = 24
-RECT_ALPHA = 0.7
 
 class VideoViewer(tkinter.Frame):
 
+    RECT_ALPHA = 0.7
+    
     #コンストラクタ
     def __init__(self, master=None):
         super().__init__(master)
@@ -26,10 +27,10 @@ class VideoViewer(tkinter.Frame):
         self.mainpanel.pack(expand=1)
 
         #ボタンを作る（rootに紐づけし、押された時に起動する関数も指定）
-        self.btngray  = tkinter.Button(root, text='gray', command=self.vis_gray)
-        self.btncolor = tkinter.Button(root, text='color', command=self.vis_color)
-        self.btngray.pack(side="left")
-        self.btncolor.pack(side="left")
+        self.btn_raise_alpha  = tkinter.Button(root, text='透過度を上げる', command=self.raise_alpha)
+        self.btn_lower_alpha = tkinter.Button(root, text='透過度を下げる', command=self.lower_alpha)
+        self.btn_raise_alpha.pack(side="left")
+        self.btn_lower_alpha.pack(side="left")
 
         #open web cam stream (複数webcamがある場合は，引数を変更する)
         self.cap   = cv2.VideoCapture( 0 )
@@ -44,11 +45,11 @@ class VideoViewer(tkinter.Frame):
 
     #ボタンが呼び出す関数を作成
     #インスタンス関数として億
-    def vis_gray(self):
-        self.do_gray = True
+    def raise_alpha(self):
+        VideoViewer.RECT_ALPHA = min(VideoViewer.RECT_ALPHA+0.1, 1.0)
 
-    def vis_color(self):
-        self.do_gray = False
+    def lower_alpha(self):
+        VideoViewer.RECT_ALPHA = max(VideoViewer.RECT_ALPHA-0.1, 0.0)
 
     def update_video(self):
         ret, frame = self.cap.read()
@@ -67,7 +68,7 @@ class VideoViewer(tkinter.Frame):
         #長方形を用意
         rect_img = np.reshape( np.full(rect_w*rect_h*3, 255), (rect_h, rect_w, 3))
         #長方形を合成
-        frame[text_loc_y:text_loc_y+rect_h, text_loc_x:text_loc_x+rect_w] = frame[text_loc_y:text_loc_y+rect_h, text_loc_x:text_loc_x+rect_w]*(1-RECT_ALPHA) + rect_img*RECT_ALPHA
+        frame[text_loc_y:text_loc_y+rect_h, text_loc_x:text_loc_x+rect_w] = frame[text_loc_y:text_loc_y+rect_h, text_loc_x:text_loc_x+rect_w]*(1-VideoViewer.RECT_ALPHA) + rect_img*VideoViewer.RECT_ALPHA
 
         #テキストを描画
         frame = Image.fromarray(frame) #PIL型の画像に変換
@@ -83,6 +84,7 @@ class VideoViewer(tkinter.Frame):
         self.mainpanel.after(33, self.update_video)
 
 if __name__ == "__main__":
+    
     root = tkinter.Tk()
     dlg = VideoViewer(master=root)
     dlg.update_video()
