@@ -3,9 +3,12 @@ import tkinter
 import cv2
 import numpy as np
 from PIL import Image, ImageTk, ImageFont, ImageDraw
+# config ファイル
+import config
+
 # $dir C:\Windows\Fonts
 # 使うフォントのpath設定してください
-FONT_PATH = "C:/Windows/Fonts/NotoSansJP-Regular.otf"
+FONT_PATH = config.get_font_pass()
 FONT_SIZE = 24
 
 class VideoViewer(tkinter.Frame):
