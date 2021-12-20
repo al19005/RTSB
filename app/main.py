@@ -120,9 +120,6 @@ class VideoViewer(tkinter.Frame):
         #テキストを描画
         is_sentence_end, text = self.speechToTextGenerator.get_speech()
         if is_sentence_end :
-            print("hi")
-            print(self.log)
-            print(text)
             t = self.log + text
             self.log = t
             text = ""
