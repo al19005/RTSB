@@ -10,7 +10,7 @@ import face_recognition, SpeechToTextGenerator
 # $dir C:\Windows\Fonts
 # 使うフォントのpath設定してください
 FONT_PATH = config.get_font_pass()
-FONT_SIZE = 24
+FONT_SIZE = 11
 
 pre_x, pre_y = 50,100
 
@@ -23,6 +23,9 @@ class VideoViewer(tkinter.Frame):
         super().__init__(master)
         #サイズを決める
         master.geometry('600x500')
+
+        #長方形のサイズを設定
+        self.rect_w, self.rect_h = 150,200
 
         self.log = ""
         #self.updating_text = ""
@@ -53,6 +56,7 @@ class VideoViewer(tkinter.Frame):
         
         #描画するフォントを設定
         self.font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
+        self.dummy_draw = ImageDraw.Draw(Image.new("RGB", (0,0)))
 
         #音声を拾い文字起こしをする
         self.speechToTextGenerator = SpeechToTextGenerator.SpeechToTextGenerator()
@@ -69,6 +73,26 @@ class VideoViewer(tkinter.Frame):
 
     def lower_alpha(self):
         VideoViewer.RECT_ALPHA = max(VideoViewer.RECT_ALPHA-0.1, 0.0)
+    
+    def get_textsize(self, text):
+        font_w, font_h = self.dummy_draw.textsize(text, font=self.font)
+        return font_w, int(1.1*font_h)
+
+    def get_format_text(self, text):
+        text_len = len(text)
+        if text_len == 0:
+            return ""
+        text_w, text_h = self.get_textsize(text)
+        line_size = int(self.rect_w / (text_w/text_len))
+        format_text = ""
+        i = 0
+        #print(text_len, line_size)
+        while text_len > i:
+            format_text += text[i:min(i+line_size, text_len)] + "\n"
+            i += line_size
+        #print(format_text)
+        return format_text
+
 
     def update_video(self):
         ret, frame = self.cap.read()
@@ -110,12 +134,11 @@ class VideoViewer(tkinter.Frame):
 
             
                 
-        #長方形のサイズを設定
-        rect_w, rect_h = 150,200
+        
         #長方形を用意
-        rect_img = np.reshape( np.full(rect_w*rect_h*3, 255), (rect_h, rect_w, 3))
+        rect_img = np.reshape( np.full(self.rect_w*self.rect_h*3, 255), (self.rect_h, self.rect_w, 3))
         #長方形を合成
-        frame[text_loc_y:text_loc_y+rect_h, text_loc_x:text_loc_x+rect_w] = frame[text_loc_y:text_loc_y+rect_h, text_loc_x:text_loc_x+rect_w]*(1-VideoViewer.RECT_ALPHA) + rect_img*VideoViewer.RECT_ALPHA
+        frame[text_loc_y:text_loc_y+self.rect_h, text_loc_x:text_loc_x+self.rect_w] = frame[text_loc_y:text_loc_y+self.rect_h, text_loc_x:text_loc_x+self.rect_w]*(1-VideoViewer.RECT_ALPHA) + rect_img*VideoViewer.RECT_ALPHA
 
         #テキストを描画
         is_sentence_end, text = self.speechToTextGenerator.get_speech()
@@ -124,8 +147,10 @@ class VideoViewer(tkinter.Frame):
             self.log = t
             text = ""
         
+
+
         frame = Image.fromarray(frame) #PIL型の画像に変換
-        ImageDraw.Draw(frame).text((text_loc_x, text_loc_y), self.log + text, font=self.font, fill=(0, 0, 255, 0))
+        ImageDraw.Draw(frame).text((text_loc_x, text_loc_y), self.get_format_text(self.log + text), font=self.font, fill=(0, 0, 255, 0))
         frame = np.array(frame) #画像をNumPy型へ再変換
         
         #画像を表示
