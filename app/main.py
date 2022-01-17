@@ -83,15 +83,18 @@ class VideoViewer(tkinter.Frame):
         if text_len == 0:
             return ""
         text_w, text_h = self.get_textsize(text)
-        line_size = int(self.rect_w / (text_w/text_len))
+        line_size = int( (self.rect_w - (text_w/text_len)/2) / (text_w/text_len) )
+        max_line_num = self.rect_h // text_h
         format_text = ""
         i = 0
+        line_num = 0
         #print(text_len, line_size)
         while text_len > i:
+            line_num += 1
             format_text += text[i:min(i+line_size, text_len)] + "\n"
             i += line_size
-        #print(format_text)
-        return format_text
+        line_size += 1
+        return format_text[(max(line_num-max_line_num, 0))*line_size:]
 
 
     def update_video(self):
@@ -145,12 +148,14 @@ class VideoViewer(tkinter.Frame):
         if is_sentence_end :
             t = self.log + text
             #吹き出しのはみ出し処理
+            """
             t_len = len(t)
             #print(t_len)
             while t_len>169:
                 t = t[13:t_len]
                 t_len = t_len -13
             #ここまで
+            """
             self.log = t
             text = ""
         
