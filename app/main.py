@@ -144,6 +144,13 @@ class VideoViewer(tkinter.Frame):
         is_sentence_end, text = self.speechToTextGenerator.get_speech()
         if is_sentence_end :
             t = self.log + text
+            #吹き出しのはみ出し処理
+            t_len = len(t)
+            #print(t_len)
+            while t_len>169:
+                t = t[13:t_len]
+                t_len = t_len -13
+            #ここまで
             self.log = t
             text = ""
         

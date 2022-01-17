@@ -33,6 +33,7 @@ class SpeechToTextGenerator():
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=RATE,
             language_code=language_code,
+            enable_automatic_punctuation=True,
         )
 
         streaming_config = speech.StreamingRecognitionConfig(
